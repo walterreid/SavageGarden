@@ -1,68 +1,18 @@
-{
-    "wood": {
-        "value": 10,
-        "weight": 5,
-        "components": [],
-        "rarity": 1
-    },
-    "steel": {
-        "value": 50,
-        "weight": 20,
-        "components": [],
-        "rarity": 4
-    },
-    "food": {
-        "value": 20,
-        "weight": 1,
-        "components": [],
-        "rarity": 2
-    },
-    "water": {
-        "value": 30,
-        "weight": 2,
-        "components": [],
-        "rarity": 3
-    },
-    "silicon": {
-        "value": 50,
-        "weight": 1,
-        "components": [],
-        "rarity": 6
-    },
-    "copper": {
-        "value": 20,
-        "weight": 1,
-        "components": [],
-        "rarity": 3
-    },
-    "watt": {
-        "value": 40,
-        "weight": 0,
-        "components": [],
-        "rarity": 4
-    },
-    "turret": {
-        "value": 20,
-        "weight": 20,
-        "components": ["steel", "steel", "steel", "chip", "steel", "steel"],
-        "rarity": 8
-    },
-    "chip": {
-        "value": 100,
-        "weight": 1,
-        "components": ["wire", "wire", "wire", "silicon"],
-        "rarity": 8
-    },
-    "wire": {
-        "value": 40,
-        "weight": 3,
-        "components": ["copper", "copper", "copper"],
-        "rarity": 4
-    },
-    "gun": {
-        "value": 100,
-        "weight": 5,
-        "components": ["steel", "copper"],
-        "rarity": 6
-    }
-}
+[
+  { "id": "scrap", "type": "resource", "name": "Scrap", "value": 10, "weight": 5, "components": [], "rarity": 1 },
+  { "id": "food", "type": "resource", "name": "Food", "value": 20, "weight": 1, "components": [], "rarity": 2 },
+  { "id": "water", "type": "resource", "name": "Water", "value": 30, "weight": 2, "components": [], "rarity": 3 },
+  { "id": "copper", "type": "resource", "name": "Copper", "value": 20, "weight": 1, "components": [], "rarity": 3 },
+  { "id": "silicon", "type": "resource", "name": "Silicon", "value": 50, "weight": 1, "components": [], "rarity": 6 },
+  { "id": "watt", "type": "resource", "name": "Watt", "value": 40, "weight": 0, "components": [], "rarity": 4 },
+
+  { "id": "steel", "type": "component", "name": "Steel", "value": 50, "weight": 20, "components": ["scrap"], "rarity": 4 },
+  { "id": "wire", "type": "component", "name": "Wire", "value": 40, "weight": 3, "components": ["copper"], "rarity": 4 },
+  { "id": "chip", "type": "component", "name": "Chip", "value": 100, "weight": 1, "components": ["wire", "wire", "wire", "silicon"], "rarity": 8 },
+
+  { "id": "gun", "type": "weapon", "name": "Gun", "value": 100, "weight": 5, "components": ["steel", "copper"], "rarity": 6, "damage": 8, "range": "ranged" },
+  { "id": "lab_coat", "type": "armor", "name": "Lab Coat", "value": 30, "weight": 2, "components": [], "rarity": 2, "defense": 1, "special_bonus": { "INT": 2 } },
+  { "id": "combat_armor", "type": "armor", "name": "Combat Armor", "value": 120, "weight": 10, "components": ["steel", "steel"], "rarity": 7, "defense": 5 },
+  { "id": "pistol", "type": "weapon", "name": "Pistol", "value": 80, "weight": 3, "components": ["steel", "copper"], "rarity": 5, "damage": 7, "range": "ranged" },
+  { "id": "baseball_bat", "type": "weapon", "name": "Baseball Bat", "value": 40, "weight": 4, "components": ["scrap"], "rarity": 3, "damage": 5, "range": "melee" }
+]

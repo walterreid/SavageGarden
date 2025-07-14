@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savage Garden - JavaScript Version</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .main-content {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+        }
+        
+        .sidebar {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section h3 {
+            margin: 0 0 10px 0;
+            color: #00ff00;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+        
+        .people-list, .rooms-list {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .rooms-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .person-item, .room-item {
+            padding: 5px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            border-left: 3px solid #ffd700;
+        }
+        
+        .room-item {
+            margin-bottom: 0;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .action-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 12px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .action-btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 2px;
+            border-radius: 3px;
+        }
+        
+        .game-log {
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff00;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-value {
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .dead {
+            opacity: 0.5;
+            color: #ff0000;
+        }
+        
+        .scavenging {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .mission-status {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .mission-status .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .mission-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .mission-control-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .mission-control-btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .mission-control-btn.danger {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .mission-control-btn.danger:hover {
+            background: #ff0000;
+            color: #000;
+        }
+        
+        .death-notice {
+            background-color: #d32f2f;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-value.danger {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        
+        .status-value.warning {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        
+        .scavenging-notice {
+            color: #00ff00;
+            font-style: italic;
+            font-size: 0.9em;
+            padding: 5px;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        .mission-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .mission-log-entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .mission-log-entry.success {
+            background: rgba(0, 255, 0, 0.2);
+            border-left: 3px solid #00ff00;
+        }
+
+        .mission-log-entry.danger {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 3px solid #ff0000;
+        }
+
+        .mission-log-entry.warning {
+            background: rgba(255, 255, 0, 0.2);
+            border-left: 3px solid #ffff00;
+        }
+
+        .mission-log-entry.info {
+            background: rgba(0, 255, 255, 0.2);
+            border-left: 3px solid #00ffff;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: 5% auto;
+            padding: 0;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: #00ff00;
+            color: #000;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close {
+            color: #000;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .person-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .person-action-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        .person-action-btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .person-action-btn.danger {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .person-action-btn.danger:hover {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .person-info-details {
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .person-info-details h4 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 1.5em;
+        }
+
+        .person-info-details h5 {
+            margin: 20px 0 10px 0;
+            color: #34495e;
+            font-size: 1.2em;
+        }
+
+        .person-info-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            color: #2c3e50;
+        }
+
+        .equipped-item, .medical-item {
+            padding: 5px;
+            margin: 2px 0;
+            background: #ecf0f1;
+            border-radius: 3px;
+            color: #2c3e50;
+        }
+
+        /* Day Progress Bar */
+        .day-progress-container {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #00ff00;
+        }
+
+        .day-progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .day-progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #00ff00;
+        }
+
+        .day-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00cc00);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Scavenge Mission Tabs */
+        .scavenge-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .scavenge-tab {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .scavenge-tab.active {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .scavenge-tab:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .scavenge-mission-panel {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #00ff00;
+            display: none;
+        }
+
+        .scavenge-mission-panel.active {
+            display: block;
+        }
+
+        .mission-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .mission-log-entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .mission-log-entry.encounter {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 3px solid #ff0000;
+        }
+
+        .mission-log-entry.combat {
+            background: rgba(255, 0, 0, 0.3);
+            border-left: 3px solid #ff0000;
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .mission-log-entry.wound {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 3px solid #ff0000;
+            color: #ff6666;
+            font-style: italic;
+        }
+
+        .mission-log-entry.search {
+            background: rgba(0, 255, 255, 0.2);
+            border-left: 3px solid #00ffff;
+            color: #00ffff;
+        }
+
+        .mission-log-entry.find {
+            background: rgba(0, 255, 0, 0.2);
+            border-left: 3px solid #00ff00;
+        }
+
+        .mission-log-entry.radiation {
+            background: rgba(255, 255, 0, 0.2);
+            border-left: 3px solid #ffff00;
+        }
+
+        .mission-log-entry.loot {
+            background: rgba(0, 255, 255, 0.2);
+            border-left: 3px solid #00ffff;
+        }
+
+        .mission-log-entry.narrative {
+            background: rgba(255, 255, 0, 0.2);
+            border-left: 3px solid #ffff00;
+            font-style: italic;
+        }
+
+        .mission-log-entry.location {
+            background: rgba(0, 255, 255, 0.2);
+            border-left: 3px solid #00ffff;
+            font-weight: bold;
+        }
+
+        .mission-log-entry.transition {
+            background: rgba(255, 170, 0, 0.2);
+            border-left: 3px solid #ffaa00;
+        }
+
+        .mission-log-entry.medical {
+            background: rgba(255, 0, 255, 0.2);
+            border-left: 3px solid #ff00ff;
+        }
+
+        .mission-log-entry.quiet {
+            background: rgba(136, 136, 136, 0.2);
+            border-left: 3px solid #888888;
+            font-style: italic;
+        }
+
+        .mission-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .mission-control-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .mission-control-btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .mission-control-btn.danger {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .mission-control-btn.danger:hover {
+            background: #ff0000;
+            color: #000;
+        }
+
+        .mission-control-btn.warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .mission-control-btn.warning:hover {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 2px solid #00ff00;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #2a2a2a;
+            color: #00ff00;
+            cursor: pointer;
+            border-right: 1px solid #333;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .tab:hover {
+            background: #3a3a3a;
+        }
+
+        .tab.active {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .scavenge-missions-container {
+            padding: 20px;
+        }
+
+        .inhabitant-inventory {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+
+        .inhabitant-inventory h5 {
+            margin: 0 0 10px 0;
+            color: #00ff00;
+            font-size: 0.9em;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .inventory-item {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            color: #00ff00;
+        }
+
+        .inventory-item.medical {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .room-option {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .room-option:hover {
+            background: #3a3a3a;
+            border-color: #666;
+            transform: translateY(-2px);
+        }
+
+        .room-option-content h4 {
+            margin: 0 0 8px 0;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .room-option-content p {
+            margin: 4px 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .room-option-content p:last-child {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+    </style>
+    <script src="game-engine.js?v=2"></script>
+    <script>
+        // Test system for Savage Garden JavaScript Game Engine
+        class GameTester {
+            constructor() {
+                this.tests = [];
+                this.passed = 0;
+                this.failed = 0;
+            }
+
+            // Add a test
+            test(name, testFunction) {
+                this.tests.push({ name, testFunction });
+            }
+
+            // Assert helper
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message);
+                }
+            }
+
+            // Run all tests
+            runTests() {
+                console.log('🧪 Running Game Tests...\n');
+                
+                for (const test of this.tests) {
+                    try {
+                        test.testFunction();
+                        console.log(`✅ PASS: ${test.name}`);
+                        this.passed++;
+                    } catch (error) {
+                        console.log(`❌ FAIL: ${test.name}`);
+                        console.log(`   Error: ${error.message}`);
+                        this.failed++;
+                    }
+                }
+                
+                console.log(`\n📊 Test Results: ${this.passed} passed, ${this.failed} failed`);
+                
+                if (this.failed === 0) {
+                    console.log('🎉 All tests passed!');
+                } else {
+                    console.log('⚠️  Some tests failed. Check the errors above.');
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Savage Garden</h1>
+            <p>JavaScript Version - Vault Management Simulator</p>
+        </div>
+        
+        <!-- Day Progress Bar -->
+        <div class="day-progress-container">
+            <div class="day-progress-info">
+                <span>Day <span id="day-display">1</span></span>
+                <span id="day-progress-text">0%</span>
+            </div>
+            <div class="day-progress-bar">
+                <div class="day-progress-fill" id="day-progress-fill"></div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div>Action Points</div>
+                <div class="status-value" id="action-points-display">50</div>
+            </div>
+            <div class="status-item">
+                <div>Happiness</div>
+                <div class="status-value" id="happiness-display">100</div>
+            </div>
+            <div class="status-item">
+                <div>Caps</div>
+                <div class="status-value" id="caps-display">100</div>
+            </div>
+        </div>
+        
+        <!-- Main Tab Navigation -->
+        <div class="tab-navigation">
+            <div class="tab active" id="base-tab" onclick="window.gameUI.showTab('base')">🏠 Base</div>
+            <div class="tab" id="scavenge-tab" onclick="window.gameUI.showTab('scavenge')" style="display: none;">🗺️ Scavenge Missions</div>
+        </div>
+        
+        <div class="game-area">
+            <!-- Base Tab Content -->
+            <div class="tab-content active" id="base-content">
+                <div class="main-content">
+                    <div class="section">
+                        <h3>👥 Inhabitants</h3>
+                        <div class="people-list" id="people-list">
+                            <!-- People will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>🏠 Rooms</h3>
+                        <div class="rooms-list" id="rooms-list">
+                            <!-- Rooms will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>🎮 Actions</h3>
+                        <div id="action-buttons">
+                            <!-- Action buttons will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scavenge Missions Tab Content -->
+            <div class="tab-content" id="scavenge-content">
+                <div class="scavenge-missions-container">
+                    <h3>🗺️ Active Scavenge Missions</h3>
+                    <div class="scavenge-tabs" id="scavenge-tabs">
+                        <!-- Scavenge mission tabs will be populated here -->
+                    </div>
+                    <div id="scavenge-mission-panels">
+                        <!-- Scavenge mission panels will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="section">
+                    <h3>🏠 Global Inventory</h3>
+                    <div id="global-inventory">
+                        <!-- Global inventory will be populated here -->
+                    </div>
+                </div>
+
+                <div class="section" id="build-room-section">
+                    <h3>Build Room</h3>
+                    <div id="build-room-list"></div>
+                </div>
+
+                <div class="section">
+                    <h3>📝 Game Log</h3>
+                    <div class="game-log" id="game-log">
+                        <!-- Game log will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Person Info Modal -->
+    <div id="person-info-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Person Details</h3>
+                <span class="close" onclick="document.getElementById('person-info-modal').style.display='none'">&times;</span>
+            </div>
+            <div id="person-info-content">
+                <!-- Person details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Modal -->
+    <div id="trade-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Trade</h3>
+                <span class="close" onclick="document.getElementById('trade-modal').style.display='none'">&times;</span>
+            </div>
+            <div style="padding: 20px;">
+                <p>Trade 10 caps for 5 steel?</p>
+                <button class="action-btn" onclick="performTrade()">Trade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Assignment Modal -->
+    <div id="room-assignment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign to Room</h3>
+                <span class="close" onclick="document.getElementById('room-assignment-modal').style.display='none'">&times;</span>
+            </div>
+            <div id="room-selection-list"></div>
+            <button class="action-btn" onclick="document.getElementById('room-assignment-modal').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Wanderer Arrival Modal -->
+    <div id="wanderer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Wanderer Arrives!</h3>
+                <span class="close" id="close-wanderer-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="wanderer-modal-body">
+                <!-- Wanderer info will be injected here -->
+            </div>
+            <div class="modal-footer" style="padding: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="action-btn" id="accept-wanderer-btn">Accept</button>
+                <button class="action-btn danger" id="reject-wanderer-btn">Reject</button>
+                <span id="wanderer-timer" style="margin-left: auto; font-weight: bold;"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game UI Controller
+        class GameUI {
+            constructor() {
+                this.gameState = null;
+                this.initializeGame();
+            }
+            
+            initializeGame() {
+                // Try to load existing game, otherwise start new game
+                this.gameState = loadGame();
+                if (!this.gameState) {
+                    this.gameState = newGame();
+                    this.log('New game started! Welcome to Savage Garden.', 'info');
+                } else {
+                    this.log('Game loaded successfully!', 'info');
+                }
+                
+                this.updateDisplay();
+            }
+            
+            startNewGame() {
+                // Clear localStorage and start fresh
+                localStorage.removeItem('shelterGame');
+                this.gameState = newGame();
+                this.log('New game started! Welcome to Savage Garden.', 'info');
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                this.updateStatusBar();
+                this.renderPeople();
+                this.renderRooms();
+                this.renderActions();
+                this.renderInventory();
+                this.updateDayProgress();
+                this.updateScavengeMissions();
+                this.renderBuildRoomOptions();
+                this.checkWandererArrival(); // Add this line
+                // Ensure we're on the base tab by default
+                if (!document.querySelector('.tab.active')) {
+                    this.showTab('base');
+                }
+            }
+            
+            updateStatusBar() {
+                document.getElementById('day-display').textContent = this.gameState.resources.days;
+                document.getElementById('action-points-display').textContent = this.gameState.resources.actionPoints;
+                document.getElementById('happiness-display').textContent = this.gameState.resources.happiness;
+                document.getElementById('caps-display').textContent = this.gameState.resources.caps;
+            }
+            
+            renderPeople() {
+                const container = document.getElementById('people-list');
+                container.innerHTML = '';
+                
+                // Player removed - overseer mode
+                
+                // Add other people
+                for (const [name, person] of Object.entries(this.gameState.people)) {
+                    // Handle NaN health values and ensure proper number display
+                    const healthValue = typeof person.health === 'number' && !isNaN(person.health) ? person.health : (person.alive === false ? 0 : 100);
+                    const healthDisplay = Math.round(healthValue);
+                    const isDead = person.alive === false || healthValue <= 0;
+                    const personStatus = isDead ? 'Died' : person.name;
+                    
+                    container.innerHTML += `
+                        <div class="person-item ${isDead ? 'dead' : ''}">
+                            <strong>👤 ${personStatus}</strong><br>
+                            Health: ${healthDisplay} | Hunger: ${Math.round(person.hunger)} | Thirst: ${Math.round(person.thirst)}<br>
+                            Room: ${person.room || 'None'} ${person.isScavenging ? `<span class="scavenging">🔍 Scavenging (${person.scavengeDays || 0}/${person.scavengeTargetDays === 0 ? '∞' : person.scavengeTargetDays} days)</span>` : ''} ${person.isReturning ? `<span class="scavenging">🏠 Returning</span>` : ''}
+                            <div class="person-actions">
+                                <button class="person-action-btn" onclick="gameUI.showPersonInfo('${name}')">Info</button>
+                                ${!isDead ? `
+                                    ${person.isScavenging ? `
+                                        <span class="scavenging-notice">🔍 Scavenging - Actions Disabled</span>
+                                    ` : `
+                                        <button class="person-action-btn" onclick="gameUI.performPersonAction('feed', '${name}')">Feed</button>
+                                        <button class="person-action-btn" onclick="gameUI.performPersonAction('drink', '${name}')">Drink</button>
+                                        <button class="person-action-btn" onclick="gameUI.performPersonAction('scavenge', '${name}')">Scavenge</button>
+                                        <button class="person-action-btn" onclick="gameUI.performPersonAction('assign', '${name}')">Assign</button>
+                                        <button class="person-action-btn" onclick="gameUI.performPersonAction('unassign', '${name}')">Unassign</button>
+                                    `}
+                                ` : `
+                                    <button class="person-action-btn danger" onclick="gameUI.performPersonAction('remove dead', '${name}')">Remove</button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            renderRooms() {
+                const rooms = this.gameState.rooms;
+                const container = document.getElementById('rooms-list');
+                container.innerHTML = '';
+                
+                for (const [name, room] of Object.entries(rooms)) {
+                    let specialFeatures = '';
+                    if (room.freeSleeping) {
+                        specialFeatures += '<br>🆓 Free Sleeping Area';
+                    }
+                    if (room.produce === 'happiness') {
+                        specialFeatures += '<br>😊 Produces Happiness';
+                    }
+                    
+                    container.innerHTML += `
+                        <div class="room-item">
+                            <strong>🏠 ${name}</strong><br>
+                            Built: ${room.built ? '✅' : '❌'}<br>
+                            Assigned: ${room.assigned ? '✅' : '❌'}<br>
+                            Produces: ${room.produce || 'None'}<br>
+                            ${specialFeatures}
+                        </div>
+                    `;
+                }
+            }
+            
+            renderActions() {
+                const container = document.getElementById('action-buttons');
+                container.innerHTML = '';
+                
+                // Add New Game button first
+                const newGameButton = document.createElement('button');
+                newGameButton.className = 'action-btn';
+                newGameButton.textContent = 'New Game';
+                newGameButton.onclick = () => this.startNewGame();
+                container.appendChild(newGameButton);
+                
+                // Only show specific actions
+                const allowedActions = ['quit', 'auto assign all', 'auto feed all', 'skip'];
+                
+                allowedActions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.className = 'action-btn';
+                    button.textContent = this.capitalizeAction(action);
+                    button.onclick = () => this.performAction(action);
+                    container.appendChild(button);
+                });
+                
+                // Add trade button
+                const tradeButton = document.createElement('button');
+                tradeButton.className = 'action-btn';
+                tradeButton.textContent = 'Trade';
+                tradeButton.onclick = () => this.showTradeModal();
+                container.appendChild(tradeButton);
+                
+                // Add Test button
+                const testButton = document.createElement('button');
+                testButton.className = 'action-btn';
+                testButton.textContent = 'Run Tests';
+                testButton.onclick = () => runGameTests();
+                container.appendChild(testButton);
+            }
+            
+            renderInventory() {
+                const globalInventory = this.gameState.globalInventory;
+                const globalInventoryContainer = document.getElementById('global-inventory');
+                
+                globalInventoryContainer.innerHTML = '';
+                
+                Object.entries(globalInventory).forEach(([item, count]) => {
+                    if (count > 0) {
+                        globalInventoryContainer.innerHTML += `
+                            <div class="resource-item">
+                                <div>📦 ${item}</div>
+                                <div class="status-value">${count}</div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            capitalizeAction(action) {
+                return action.split(' ').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            }
+            
+            performAction(action) {
+                console.log('Performing action:', action);
+                const result = performAction(action);
+                console.log('Action result:', result);
+                
+                if (result.error) {
+                    this.log(`Error: ${result.error}`, 'error');
+                } else if (result.success) {
+                    this.log(result.message, 'success');
+                } else if (result.quit) {
+                    this.log('Game ended.', 'info');
+                    // Could implement game restart logic here
+                }
+                
+                // Update game state and display
+                this.gameState = getGameState();
+                this.updateDisplay();
+            }
+            
+            log(message, type = 'info') {
+                const logContainer = document.getElementById('game-log');
+                const timestamp = new Date().toLocaleTimeString();
+                const color = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#ffffff';
+                
+                logContainer.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            showPersonInfo(personName) {
+                const modal = document.getElementById('person-info-modal');
+                const content = document.getElementById('person-info-content');
+                
+                const person = this.gameState.people[personName];
+                
+                if (!person) {
+                    this.log('Person not found.', 'error');
+                    return;
+                }
+                
+                content.innerHTML = `
+                    <div class="person-info-details">
+                        <h4>${person.name}</h4>
+                        
+                        <h5>Basic Info</h5>
+                        <div class="person-info-stats">
+                            <div class="info-stat">
+                                <span>Age:</span>
+                                <span>${person.age}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Gender:</span>
+                                <span>${person.gender}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Health:</span>
+                                <span>${person.health}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Hunger:</span>
+                                <span>${person.hunger}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Thirst:</span>
+                                <span>${person.thirst}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Radiation:</span>
+                                <span>${person.radiation}</span>
+                            </div>
+                        </div>
+                        
+                        <h5>SPECIAL Stats</h5>
+                        <div class="person-info-stats">
+                            <div class="info-stat">
+                                <span>Strength:</span>
+                                <span>${person.stats.S}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Perception:</span>
+                                <span>${person.stats.P}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Endurance:</span>
+                                <span>${person.stats.E}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Charisma:</span>
+                                <span>${person.stats.C}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Intelligence:</span>
+                                <span>${person.stats.I}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Agility:</span>
+                                <span>${person.stats.A}</span>
+                            </div>
+                            <div class="info-stat">
+                                <span>Luck:</span>
+                                <span>${person.stats.L}</span>
+                            </div>
+                        </div>
+                        
+                        <h5>Equipped Items</h5>
+                        <div class="equipped-item">
+                            Weapon: ${person.equipped.weapon ? person.equipped.weapon.name : 'None'}
+                        </div>
+                        <div class="equipped-item">
+                            Armor: ${person.equipped.armor ? person.equipped.armor.name : 'None'}
+                        </div>
+                        <div class="equipped-item">
+                            Outfit: ${person.equipped.outfit ? person.equipped.outfit.name : 'None'}
+                        </div>
+                        
+                        <h5>Medical Supplies</h5>
+                        <div class="medical-item">
+                            Stimpaks: ${person.stimpaks}
+                        </div>
+                        <div class="medical-item">
+                            RadAway: ${person.radaways}
+                        </div>
+                        
+                        <h5>Status</h5>
+                        <div class="info-stat">
+                            <span>Room:</span>
+                            <span>${person.room || 'None'}</span>
+                        </div>
+                        <div class="info-stat">
+                            <span>Scavenging:</span>
+                            <span>${person.isScavenging ? 'Yes' : 'No'}</span>
+                        </div>
+                        ${person.isScavenging ? `
+                        <div class="info-stat">
+                            <span>Scavenge Days:</span>
+                            <span>${person.scavengeDays}/${person.scavengeTargetDays}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                modal.style.display = 'block';
+            }
+
+            performPersonAction(action, personName) {
+                let result;
+                
+                switch (action) {
+                    case 'feed':
+                        result = performAction('feed', personName);
+                        break;
+                    case 'drink':
+                        result = performAction('drink', personName);
+                        break;
+                    case 'scavenge':
+                        // Start indefinite scavenge mission
+                        result = performAction('scavenge', personName, 0); // 0 means indefinite
+                        if (result.success) {
+                            // Switch to scavenge tab when someone starts scavenging
+                            setTimeout(() => this.showTab('scavenge'), 100);
+                        }
+                        break;
+                    case 'assign':
+                        // Handle room assignment
+                        const availableRooms = getAvailableRooms();
+                        if (availableRooms.length > 0) {
+                            this.showRoomAssignmentModal(personName, availableRooms);
+                        } else {
+                            this.log('No rooms available for assignment.', 'warning');
+                        }
+                        break;
+                    case 'unassign':
+                        result = performAction('unassign', personName);
+                        break;
+                    case 'remove dead':
+                        result = performAction('remove dead', personName);
+                        break;
+                    default:
+                        this.log(`Unknown action: ${action}`, 'error');
+                        return;
+                }
+                
+                if (result.error) {
+                    this.log(`Error: ${result.error}`, 'error');
+                } else if (result.success) {
+                    this.log(result.message, 'success');
+                }
+                
+                // Update game state and display
+                this.gameState = getGameState();
+                this.updateDisplay();
+            }
+
+            showTradeModal() {
+                document.getElementById('trade-modal').style.display = 'block';
+            }
+
+            performTrade() {
+                const result = performAction('trade');
+                
+                if (result.error) {
+                    this.log(`Error: ${result.error}`, 'error');
+                } else if (result.success) {
+                    this.log(result.message, 'success');
+                }
+                
+                // Update game state and display
+                this.gameState = getGameState();
+                this.updateDisplay();
+                
+                // Close modal
+                document.getElementById('trade-modal').style.display = 'none';
+            }
+
+            updateDayProgress() {
+                if (!window.gameEngine) return;
+                
+                const now = Date.now();
+                const timeElapsed = now - window.gameEngine.dayStartTime;
+                const progress = Math.min(1, timeElapsed / window.gameEngine.dayDuration);
+                const progressPercent = Math.round(progress * 100);
+                
+                document.getElementById('day-progress-fill').style.width = `${progressPercent}%`;
+                document.getElementById('day-progress-text').textContent = `${progressPercent}%`;
+            }
+
+            showTab(tabName) {
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected tab content
+                document.getElementById(`${tabName}-content`).classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            }
+
+            updateScavengeMissions() {
+                console.log('🔄 Updating scavenge missions...');
+                console.log('Game state:', this.gameState);
+                console.log('Active missions:', this.gameState?.activeScavengeMissions);
+                
+                if (!this.gameState || !this.gameState.activeScavengeMissions) return;
+                
+                const scavengeTab = document.getElementById('scavenge-tab');
+                const tabsContainer = document.getElementById('scavenge-tabs');
+                const panelsContainer = document.getElementById('scavenge-mission-panels');
+                
+                if (this.gameState.activeScavengeMissions.size === 0) {
+                    scavengeTab.style.display = 'none';
+                    return;
+                }
+                
+                // Show scavenge tab when there are active missions
+                scavengeTab.style.display = 'block';
+                
+                // Remember currently active tab
+                const currentlyActiveTab = document.querySelector('.scavenge-tab.active');
+                const activeTabName = currentlyActiveTab ? currentlyActiveTab.textContent : null;
+                
+                tabsContainer.innerHTML = '';
+                panelsContainer.innerHTML = '';
+                
+                let activeTab = null;
+                
+                for (const [personName, mission] of this.gameState.activeScavengeMissions) {
+                    // Create tab
+                    const tab = document.createElement('div');
+                    tab.className = 'scavenge-tab';
+                    tab.textContent = personName;
+                    tab.onclick = () => this.showScavengeMission(personName);
+                    tabsContainer.appendChild(tab);
+                    
+                    // Create panel
+                    const panel = document.createElement('div');
+                    panel.className = 'scavenge-mission-panel';
+                    panel.id = `mission-panel-${personName}`;
+                    
+                    const progress = Math.round(mission.progress * 100);
+                    const timeElapsed = Math.round(mission.timeElapsed / 1000 / 60); // minutes
+                    
+                    // Handle returning status
+                    let statusText = '';
+                    if (mission.isReturning) {
+                        const returnProgress = Math.round(mission.returnProgress * 100);
+                        const returnTimeElapsed = Math.round(mission.returnTimeElapsed / 1000 / 60);
+                        statusText = `Returning: ${returnProgress}% (${returnTimeElapsed} minutes elapsed)`;
+                    } else {
+                        statusText = `Progress: ${progress}% (${timeElapsed} minutes elapsed)`;
+                    }
+                    
+                    // Get current person data for health/radiation display
+                    const person = this.gameState.people[personName];
+                    const healthValue = person && typeof person.health === 'number' && !isNaN(person.health) ? person.health : 100;
+                    const radiationValue = person && typeof person.radiation === 'number' && !isNaN(person.radiation) ? person.radiation : 0;
+                    const healthDisplay = Math.round(healthValue);
+                    const radiationDisplay = Math.round(radiationValue);
+                    const isAlive = person && person.alive !== false;
+                    
+                    panel.innerHTML = `
+                        <h4>${personName}'s Scavenge Mission</h4>
+                        <div class="mission-status">
+                            <div class="status-item">
+                                <span>Status:</span>
+                                <span class="status-value">${mission.isReturning ? 'Returning' : 'Scavenging'}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Health:</span>
+                                <span class="status-value ${healthDisplay <= 25 ? 'danger' : healthDisplay <= 50 ? 'warning' : ''}">${healthDisplay}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Radiation:</span>
+                                <span class="status-value ${radiationDisplay >= 75 ? 'danger' : radiationDisplay >= 50 ? 'warning' : ''}">${radiationDisplay}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Progress:</span>
+                                <span class="status-value">${statusText}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Target Duration:</span>
+                                <span class="status-value">${mission.targetDays === 0 ? 'Indefinite' : mission.targetDays + ' days'}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Estimated Completion:</span>
+                                <span class="status-value">${this.calculateCompletionTime(mission)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mission-log" id="mission-log-${personName}">
+                            ${this.renderMissionLog(mission.log || [])}
+                        </div>
+                        
+                        ${isAlive ? `
+                        <div class="mission-controls">
+                            <button class="mission-control-btn" onclick="window.gameUI.useStimpak('${personName}')">
+                                Use Stimpak
+                            </button>
+                            <button class="mission-control-btn" onclick="window.gameUI.useRadaway('${personName}')">
+                                Use RadAway
+                            </button>
+                            ${mission.isReturning ? `
+                            <button class="mission-control-btn warning" onclick="window.gameUI.continueJourney('${personName}')">
+                                Continue Journey
+                            </button>
+                            ` : `
+                            <button class="mission-control-btn danger" onclick="window.gameUI.recallScavenger('${personName}')">
+                                Recall
+                            </button>
+                            `}
+                        </div>
+                        
+                        <div class="inhabitant-inventory">
+                            <h5>Personal Inventory</h5>
+                            <div class="inventory-items">
+                                ${this.renderInhabitantInventory(person)}
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="mission-controls">
+                            <div class="death-notice">⚠️ ${personName} has died in the wasteland</div>
+                            <button class="mission-control-btn danger" onclick="window.gameUI.removeDeadPerson('${personName}')">
+                                Remove from Missions
+                            </button>
+                        </div>
+                        `}
+                    `;
+                    
+                    panelsContainer.appendChild(panel);
+                    
+                    if (!activeTab) {
+                        activeTab = personName;
+                    }
+                }
+                
+                // Restore previously active tab or show first tab by default
+                if (activeTabName && this.gameState.activeScavengeMissions.has(activeTabName)) {
+                    this.showScavengeMission(activeTabName);
+                } else if (activeTab) {
+                    this.showScavengeMission(activeTab);
+                }
+                
+                // Force scroll all mission logs to bottom
+                setTimeout(() => this.scrollMissionLogsToBottom(), 50);
+            }
+            
+            scrollMissionLogsToBottom() {
+                const missionLogs = document.querySelectorAll('.mission-log');
+                missionLogs.forEach(logElement => {
+                    // Force scroll to bottom with a small delay to ensure content is rendered
+                    setTimeout(() => {
+                        logElement.scrollTop = logElement.scrollHeight;
+                    }, 10);
+                });
+            }
+
+            renderMissionLog(log) {
+                console.log('📝 Rendering mission log:', log);
+                if (!log || log.length === 0) {
+                    return '<div class="mission-log-entry">No events yet...</div>';
+                }
+                
+                const logHtml = log.map(entry => {
+                    const time = new Date(entry.timestamp).toLocaleTimeString();
+                    return `<div class="mission-log-entry ${entry.type}">[${time}] ${entry.message}</div>`;
+                }).join('');
+                
+                // Force scroll to bottom after rendering
+                setTimeout(() => {
+                    const missionLogs = document.querySelectorAll('.mission-log');
+                    missionLogs.forEach(logElement => {
+                        logElement.scrollTop = logElement.scrollHeight;
+                    });
+                }, 10);
+                
+                return logHtml;
+            }
+
+            showScavengeMission(personName) {
+                // Update tab states
+                document.querySelectorAll('.scavenge-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.scavenge-mission-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                // Activate selected tab and panel
+                const selectedTab = Array.from(document.querySelectorAll('.scavenge-tab')).find(tab => tab.textContent === personName);
+                const selectedPanel = document.getElementById(`mission-panel-${personName}`);
+                
+                if (selectedTab) selectedTab.classList.add('active');
+                if (selectedPanel) selectedPanel.classList.add('active');
+            }
+
+            useStimpak(personName) {
+                const person = this.gameState.people[personName];
+                if (person && person.stimpaks > 0) {
+                    person.stimpaks--;
+                    person.health = Math.min(100, person.health + 25);
+                    this.log(`${personName} used a stimpak. Health: ${person.health}`, 'success');
+                    
+                    // Update the game engine directly
+                    if (window.gameEngine && window.gameEngine.people[personName]) {
+                        window.gameEngine.people[personName].stimpaks = person.stimpaks;
+                        window.gameEngine.people[personName].health = person.health;
+                    }
+                    
+                    // Refresh game state and update display
+                    this.gameState = getGameState();
+                    this.updateDisplay();
+                } else {
+                    this.log(`${personName} has no stimpaks available.`, 'error');
+                }
+            }
+
+            useRadaway(personName) {
+                const person = this.gameState.people[personName];
+                if (person && person.radaways > 0) {
+                    person.radaways--;
+                    person.radiation = Math.max(0, person.radiation - 20);
+                    this.log(`${personName} used radaway. Radiation: ${person.radiation}`, 'success');
+                    
+                    // Update the game engine directly
+                    if (window.gameEngine && window.gameEngine.people[personName]) {
+                        window.gameEngine.people[personName].radaways = person.radaways;
+                        window.gameEngine.people[personName].radiation = person.radiation;
+                    }
+                    
+                    // Refresh game state and update display
+                    this.gameState = getGameState();
+                    this.updateDisplay();
+                } else {
+                    this.log(`${personName} has no radaway available.`, 'error');
+                }
+            }
+
+            recallScavenger(personName) {
+                const result = performAction('return', personName);
+                if (result.success) {
+                    this.log(result.message, 'success');
+                    this.updateDisplay();
+                } else {
+                    this.log(`Error recalling ${personName}: ${result.error}`, 'error');
+                }
+            }
+
+            continueJourney(personName) {
+                const result = performAction('continue journey', personName);
+                if (result.success) {
+                    this.log(result.message, 'success');
+                    this.updateDisplay();
+                } else {
+                    this.log(`Error continuing journey for ${personName}: ${result.error}`, 'error');
+                }
+            }
+
+            removeDeadPerson(personName) {
+                const result = performAction('remove dead', personName);
+                if (result.success) {
+                    this.log(result.message, 'success');
+                    this.updateDisplay();
+                } else {
+                    this.log(`Error removing ${personName}: ${result.error}`, 'error');
+                }
+            }
+
+            renderInhabitantInventory(person) {
+                let inventoryHtml = '';
+                let hasItems = false;
+                
+                // Check regular inventory items
+                if (person.inventory && Object.keys(person.inventory).length > 0) {
+                    for (const [item, count] of Object.entries(person.inventory)) {
+                        if (count > 0) {
+                            inventoryHtml += `<div class="inventory-item">${item}: ${count}</div>`;
+                            hasItems = true;
+                        }
+                    }
+                }
+                
+                // Add medical supplies
+                if (person.stimpaks > 0) {
+                    inventoryHtml += `<div class="inventory-item medical">Stimpaks: ${person.stimpaks}</div>`;
+                    hasItems = true;
+                }
+                if (person.radaways > 0) {
+                    inventoryHtml += `<div class="inventory-item medical">RadAway: ${person.radaways}</div>`;
+                    hasItems = true;
+                }
+                
+                // Only show "No items" if there are no items at all
+                if (!hasItems) {
+                    return '<div class="inventory-item">No items</div>';
+                }
+                
+                return inventoryHtml;
+            }
+
+            calculateCompletionTime(mission) {
+                if (mission.isReturning) {
+                    if (mission.returnProgress >= 1) {
+                        return 'Returned to base';
+                    }
+                    
+                    const remainingReturnTime = mission.returnDuration - mission.returnTimeElapsed;
+                    const minutes = Math.floor(remainingReturnTime / 1000 / 60);
+                    
+                    if (minutes <= 0) {
+                        return 'Any moment now';
+                    } else if (minutes < 60) {
+                        return `${minutes}m remaining`;
+                    } else {
+                        const hours = Math.floor(minutes / 60);
+                        const remainingMinutes = minutes % 60;
+                        return `${hours}h ${remainingMinutes}m remaining`;
+                    }
+                }
+                
+                if (mission.progress >= 1) {
+                    return 'Completed';
+                }
+                
+                // For indefinite missions, show time elapsed instead
+                if (mission.targetDays === 0) {
+                    const elapsedHours = Math.floor(mission.timeElapsed / 1000 / 60 / 60);
+                    const elapsedMinutes = Math.floor((mission.timeElapsed / 1000 / 60) % 60);
+                    return `${elapsedHours}h ${elapsedMinutes}m elapsed`;
+                }
+                
+                const totalTime = mission.targetDays * 24 * 60; // Convert days to minutes
+                const remainingTime = totalTime - mission.timeElapsed / 1000 / 60;
+                
+                if (remainingTime <= 0) {
+                    return 'Any moment now';
+                }
+                
+                const hours = Math.floor(remainingTime / 60);
+                const minutes = Math.floor(remainingTime % 60);
+                
+                if (hours > 0) {
+                    return `${hours}h ${minutes}m remaining`;
+                } else {
+                    return `${minutes}m remaining`;
+                }
+            }
+
+            showRoomAssignmentModal(personName, availableRooms) {
+                const modal = document.getElementById('room-assignment-modal');
+                const roomSelectionList = document.getElementById('room-selection-list');
+                roomSelectionList.innerHTML = '';
+
+                availableRooms.forEach(room => {
+                    const roomDiv = document.createElement('div');
+                    roomDiv.className = 'room-option';
+                    roomDiv.innerHTML = `
+                        <div class="room-option-content">
+                            <h4>${room.name}</h4>
+                            <p>Capacity: ${room.assignedCount}/${room.maxCapacity}</p>
+                            <p>Produces: ${room.produce || 'Nothing'}</p>
+                            <p>Click to assign ${personName} to this room</p>
+                        </div>
+                    `;
+                    roomDiv.onclick = () => this.assignPersonToRoom(personName, room.name);
+                    roomSelectionList.appendChild(roomDiv);
+                });
+
+                modal.style.display = 'block';
+            }
+
+            assignPersonToRoom(personName, roomName) {
+                console.log('Assigning', personName, 'to', roomName);
+                const result = performAction('assign', personName, roomName);
+                console.log('Assignment result:', result);
+                if (result.success) {
+                    this.log(result.message, 'success');
+                    // Force a fresh game state update
+                    this.gameState = getGameState();
+                    this.updateDisplay();
+                } else {
+                    this.log(`Error assigning ${personName} to ${roomName}: ${result.error}`, 'error');
+                }
+                document.getElementById('room-assignment-modal').style.display = 'none';
+            }
+
+            renderBuildRoomOptions() {
+                const buildRoomSection = document.getElementById('build-room-section');
+                const buildRoomList = document.getElementById('build-room-list');
+                buildRoomList.innerHTML = '';
+
+                // Get all rooms from the rooms object
+                const rooms = this.gameState.rooms;
+                const globalInventory = this.gameState.globalInventory;
+                const people = this.gameState.people;
+                const allRooms = Object.entries(rooms).map(([name, room]) => ({ name, ...room }));
+
+                allRooms.forEach(room => {
+                    // Count required components
+                    const compCounts = {};
+                    (room.components || []).forEach(comp => {
+                        compCounts[comp] = (compCounts[comp] || 0) + 1;
+                    });
+                    const compList = Object.entries(compCounts)
+                        .map(([comp, count]) => `${comp}: ${count}`)
+                        .join(', ');
+
+                    // Check if player has enough materials to build
+                    let canBuild = true;
+                    for (const [comp, count] of Object.entries(compCounts)) {
+                        if (!globalInventory[comp] || globalInventory[comp] < count) {
+                            canBuild = false;
+                            break;
+                        }
+                    }
+
+                    // Extension cost (same as backend logic)
+                    const extensionCostSteel = 2 + (room.extensions || 0);
+                    const extensionCostWatt = 2 + (room.extensions || 0);
+                    const canExtend = room.built && (globalInventory.steel || 0) >= extensionCostSteel && (globalInventory.watt || 0) >= extensionCostWatt;
+
+                    // Assigned slots display
+                    let assignedCount = 0;
+                    for (const person of Object.values(people)) {
+                        if (person.assignedRoom === room.name) assignedCount++;
+                    }
+                    const assignedLimit = room.assigned_limit || 0;
+                    let assignedDisplay = '';
+                    for (let i = 0; i < assignedLimit; i++) {
+                        assignedDisplay += i < assignedCount ? '✅' : '❌';
+                    }
+
+                    // Production and power usage
+                    const production = room.production !== undefined ? room.production : room.base_production;
+                    const powerUsage = room.power_usage !== undefined ? room.power_usage : room.base_power_usage;
+
+                    // Consumption (for conversion rooms)
+                    let consumption = '';
+                    if (room.conversion && room.conversion.input) {
+                        const inputCounts = {};
+                        room.conversion.input.forEach(input => {
+                            inputCounts[input] = (inputCounts[input] || 0) + 1;
+                        });
+                        consumption = Object.entries(inputCounts).map(([input, count]) => `${input}: ${count}`).join(', ');
+                    }
+
+                    // Living room note
+                    let livingNote = '';
+                    if (room.name === 'living') {
+                        livingNote = '<p><em>Max population is determined by living room capacity. New wanderers will only arrive if there is space.</em></p>';
+                    }
+
+                    const roomDiv = document.createElement('div');
+                    roomDiv.className = 'room-option';
+                    roomDiv.innerHTML = `
+                        <div class="room-option-content">
+                            <h4>${room.name}</h4>
+                            <p>Components: ${compList || 'None'}</p>
+                            <p>Capacity: ${assignedLimit} (${assignedDisplay})</p>
+                            <p>Assigned: ${assignedCount}/${assignedLimit}</p>
+                            <p>Production: ${production !== undefined ? production : 'N/A'} ${room.produce ? room.produce + '/cycle' : ''}</p>
+                            <p>Consumption: ${consumption || (powerUsage !== undefined ? powerUsage + ' watt' : 'N/A')}</p>
+                            ${livingNote}
+                            <button class="action-btn" id="build-btn-${room.name}" ${room.built ? 'disabled' : (!canBuild ? 'disabled title="Not enough materials"' : '')}>${room.built ? 'Built' : 'Build'}</button>
+                            ${room.built ? `<button class="action-btn" id="extend-btn-${room.name}" ${canExtend ? '' : 'disabled title="Not enough steel or watt"'}>Extend Room (Cost: ${extensionCostSteel} steel, ${extensionCostWatt} watt)</button>` : ''}
+                        </div>
+                    `;
+                    buildRoomList.appendChild(roomDiv);
+
+                    // Wire up the build button if buildable and not built
+                    setTimeout(() => {
+                        const buildBtn = document.getElementById(`build-btn-${room.name}`);
+                        if (buildBtn && !room.built && canBuild) {
+                            buildBtn.onclick = () => {
+                                const result = performAction('build', room.name);
+                                if (result.success) {
+                                    this.log(result.message, 'success');
+                                } else {
+                                    this.log(result.message || result.error, 'error');
+                                }
+                                this.gameState = getGameState();
+                                this.updateDisplay();
+                            };
+                        }
+                        // Wire up the extend button if extendable
+                        const extendBtn = document.getElementById(`extend-btn-${room.name}`);
+                        if (extendBtn && room.built && canExtend) {
+                            extendBtn.onclick = () => {
+                                const result = performAction('extend', room.name);
+                                if (result.success) {
+                                    this.log(result.message, 'success');
+                                } else {
+                                    this.log(result.message || result.error, 'error');
+                                }
+                                this.gameState = getGameState();
+                                this.updateDisplay();
+                            };
+                        }
+                    }, 0);
+                });
+            }
+
+            showBuildRoomConfirmation(roomName) {
+                const modal = document.getElementById('wanderer-modal');
+                const body = document.getElementById('wanderer-modal-body');
+                const timer = document.getElementById('wanderer-timer');
+                const acceptBtn = document.getElementById('accept-wanderer-btn');
+                const rejectBtn = document.getElementById('reject-wanderer-btn');
+                const closeBtn = document.getElementById('close-wanderer-modal');
+
+                body.innerHTML = `
+                    <p>A new wanderer, ${this.gameState.people[this.gameState.currentWanderer]?.name || 'an unknown wanderer'}, has arrived at the vault.</p>
+                    <p>They are requesting to be assigned to the ${roomName} room.</p>
+                    <p>Accept or reject their request?</p>
+                `;
+                timer.textContent = '10 seconds to decide...';
+                let timeLeft = 10;
+
+                const countdown = setInterval(() => {
+                    timeLeft--;
+                    timer.textContent = `${timeLeft} seconds to decide...`;
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        timer.textContent = 'Time\'s up!';
+                        this.rejectWanderer(); // Default to reject if no decision
+                    }
+                }, 1000);
+
+                acceptBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.acceptWanderer(roomName);
+                    modal.style.display = 'none';
+                };
+                rejectBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.rejectWanderer();
+                    modal.style.display = 'none';
+                };
+                closeBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.rejectWanderer(); // Close cancels the decision
+                    modal.style.display = 'none';
+                };
+
+                modal.style.display = 'block';
+            }
+
+            acceptWanderer(roomName) {
+                this.log(`Accepted wanderer's request to be assigned to ${roomName}.`, 'success');
+                const result = performAction('assign', this.gameState.currentWanderer, roomName);
+                if (result.success) {
+                    this.gameState = getGameState();
+                    this.updateDisplay();
+                } else {
+                    this.log(`Error assigning wanderer to ${roomName}: ${result.error}`, 'error');
+                }
+            }
+
+            rejectWanderer() {
+                this.log(`Rejected wanderer's request to be assigned to any room.`, 'warning');
+                // Optionally, you could add a penalty for rejecting a wanderer
+                // For now, just log the rejection.
+            }
+
+            checkWandererArrival() {
+                const wanderer = this.gameState.pendingWanderer;
+                const modal = document.getElementById('wanderer-modal');
+                const body = document.getElementById('wanderer-modal-body');
+                const timer = document.getElementById('wanderer-timer');
+                const acceptBtn = document.getElementById('accept-wanderer-btn');
+                const rejectBtn = document.getElementById('reject-wanderer-btn');
+                const closeBtn = document.getElementById('close-wanderer-modal');
+                if (!wanderer) {
+                    modal.style.display = 'none';
+                    return;
+                }
+                body.innerHTML = `
+                    <p><strong>${wanderer.name}</strong> (${wanderer.gender}) has arrived at the vault!</p>
+                    <p><strong>SPECIAL:</strong> S: ${wanderer.stats.S}, P: ${wanderer.stats.P}, E: ${wanderer.stats.E}, C: ${wanderer.stats.C}, I: ${wanderer.stats.I}, A: ${wanderer.stats.A}, L: ${wanderer.stats.L}</p>
+                    <p>Do you want to accept this wanderer?</p>
+                `;
+                timer.textContent = '10 seconds to decide...';
+                let timeLeft = 10;
+                const countdown = setInterval(() => {
+                    timeLeft--;
+                    timer.textContent = `${timeLeft} seconds to decide...`;
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        timer.textContent = 'Time\'s up!';
+                        this.handleRejectWanderer();
+                    }
+                }, 1000);
+                acceptBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.handleAcceptWanderer();
+                    modal.style.display = 'none';
+                };
+                rejectBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.handleRejectWanderer();
+                    modal.style.display = 'none';
+                };
+                closeBtn.onclick = () => {
+                    clearInterval(countdown);
+                    this.handleRejectWanderer();
+                    modal.style.display = 'none';
+                };
+                modal.style.display = 'block';
+            }
+            handleAcceptWanderer() {
+                const result = performAction('acceptWanderer');
+                if (result.success) {
+                    this.log(result.message, 'success');
+                } else {
+                    this.log(result.message || result.error, 'error');
+                }
+                this.gameState = getGameState();
+                this.updateDisplay();
+            }
+            handleRejectWanderer() {
+                const result = performAction('rejectWanderer');
+                if (result.success) {
+                    this.log(result.message, 'warning');
+                } else {
+                    this.log(result.message || result.error, 'error');
+                }
+                this.gameState = getGameState();
+                this.updateDisplay();
+            }
+        }
+        
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.gameUI = new GameUI();
+            
+            // Set up MutationObserver to auto-scroll mission logs when content changes
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.target.classList.contains('mission-log')) {
+                        setTimeout(() => {
+                            mutation.target.scrollTop = mutation.target.scrollHeight;
+                        }, 10);
+                    }
+                });
+            });
+            
+            // Start observing mission logs
+            const observeMissionLogs = () => {
+                const missionLogs = document.querySelectorAll('.mission-log');
+                missionLogs.forEach(log => {
+                    observer.observe(log, { childList: true, subtree: true });
+                });
+            };
+            
+            // Observe mission logs whenever they're created
+            const originalUpdateScavengeMissions = window.gameUI.updateScavengeMissions;
+            window.gameUI.updateScavengeMissions = function() {
+                originalUpdateScavengeMissions.call(this);
+                setTimeout(observeMissionLogs, 100);
+            };
+        });
+        
+        // Global function for trade modal
+        function performTrade() {
+            if (window.gameUI) {
+                window.gameUI.performTrade();
+            }
+        }
+
+        // Global function for room assignment modal
+        function assignPersonToRoom(personName, roomName) {
+            if (window.gameUI) {
+                window.gameUI.assignPersonToRoom(personName, roomName);
+            }
+        }
+        
+        // Global function for game display updates
+        window.updateGameDisplay = function() {
+            if (window.gameUI) {
+                // Get fresh game state before updating display
+                window.gameUI.gameState = getGameState();
+                console.log('🔄 UI Update triggered - Food:', window.gameUI.gameState.globalInventory.food, 'Water:', window.gameUI.gameState.globalInventory.water);
+                console.log('🔄 Active scavenge missions:', window.gameUI.gameState.activeScavengeMissions);
+                window.gameUI.updateDisplay();
+            }
+        };
+
+        // Global function to run tests
+        function runGameTests() {
+            if (typeof GameTester !== 'undefined') {
+                const tester = new GameTester();
+                
+                // Test 1: Game Initialization
+                tester.test('Game Initialization', () => {
+                    const gameState = newGame();
+                    
+                    tester.assert(gameState.people, 'People object should exist');
+                    tester.assert(Object.keys(gameState.people).length === 5, 'Should have 5 initial inhabitants');
+                    tester.assert(gameState.rooms, 'Rooms object should exist');
+                    tester.assert(Object.keys(gameState.rooms).length === 4, 'Should have 4 initial rooms');
+                    tester.assert(gameState.resources.caps === 100, 'Should start with 100 caps');
+                    tester.assert(gameState.resources.happiness === 100, 'Should start with 100 happiness');
+                    tester.assert(gameState.resources.actionPoints === 50, 'Should start with 50 action points');
+                });
+                
+                // Test 2: Action System
+                tester.test('Action System', () => {
+                    newGame();
+                    const game = window.gameEngine;
+                    
+                    // Test valid actions
+                    const validActions = ['quit', 'skip', 'auto assign all', 'auto feed all', 'feed', 'drink', 'scavenge', 'trade'];
+                    for (const action of validActions) {
+                        tester.assert(game.actions[action], `Action ${action} should exist`);
+                    }
+                    
+                    // Test invalid action
+                    const result = game.performAction('invalid_action');
+                    tester.assert(result.error, 'Invalid action should return error');
+                });
+                
+                // Test 3: Game State
+                tester.test('Game State', () => {
+                    const gameState = newGame();
+                    
+                    tester.assert(gameState.people, 'Game state should have people');
+                    tester.assert(gameState.rooms, 'Game state should have rooms');
+                    tester.assert(gameState.resources, 'Game state should have resources');
+                });
+                
+                tester.runTests();
+            } else {
+                console.log('❌ GameTester not available. Make sure test-game.js is loaded.');
+            }
+        }
+    </script>
+</body>
+</html> 

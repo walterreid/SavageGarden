@@ -5,9 +5,11 @@
         "attribute" : "",
         "perk" : "",
         "produce" : "",
-        "assigned_limit": 0,
-        "components": ["wood", "wood", "wood", "wood"],
-        "power_usage": 5
+        "assigned_limit": 10,
+        "extensions": 0,
+        "components": [],
+        "base_power_usage": 5,
+        "power_per_extension": 2
     },
     "generator": {
         "risk": 2,
@@ -16,8 +18,12 @@
         "perk" : "electrician",
         "produce" : "watt",
         "assigned_limit": 3,
+        "extensions": 0,
+        "base_production": 8,
+        "production_per_extension": 4,
         "components": ["steel", "steel", "steel", "steel"],
-        "power_usage": 0
+        "base_power_usage": 0,
+        "power_per_extension": 0
     },
     "storage": {
         "risk": 0,
@@ -26,8 +32,10 @@
         "perk" : "",
         "produce" : "",
         "assigned_limit": 0,
+        "extensions": 0,
         "components": ["steel", "steel"],
-        "power_usage": 1
+        "base_power_usage": 1,
+        "power_per_extension": 1
     },
     "kitchen": {
         "risk": 1,
@@ -36,8 +44,12 @@
         "perk" : "cooking",
         "produce" : "food",
         "assigned_limit": 3,
-        "components": ["wood", "wood", "wood"],
-        "power_usage": 10
+        "extensions": 0,
+        "base_production": 5,
+        "production_per_extension": 2,
+        "components": [],
+        "base_power_usage": 10,
+        "power_per_extension": 3
     },
     "trader": {
         "risk": 0,
@@ -46,8 +58,10 @@
         "perk" : "",
         "produce" : "",
         "assigned_limit": 1,
-        "components": ["wood", "wood", "wood", "steel", "steel"],
-        "power_usage": 2
+        "extensions": 0,
+        "components": ["scrap", "scrap", "scrap", "steel", "steel"],
+        "base_power_usage": 2,
+        "power_per_extension": 1
     },
     "water": {
         "risk": 2,
@@ -56,8 +70,12 @@
         "perk" : "",
         "produce" : "water",
         "assigned_limit": 3,
-        "components": ["wood", "wood", "steel"],
-        "power_usage": 10
+        "extensions": 0,
+        "base_production": 6,
+        "production_per_extension": 2,
+        "components": ["scrap", "scrap", "steel"],
+        "base_power_usage": 10,
+        "power_per_extension": 3
     },
     "radio": {
         "risk": 0,
@@ -66,7 +84,54 @@
         "perk" : "inspiration",
         "produce" : "",
         "assigned_limit": 2,
-        "components": ["wood", "wood", "wood", "steel", "steel"],
-        "power_usage": 15
+        "extensions": 0,
+        "components": ["scrap", "scrap", "scrap", "steel", "steel"],
+        "base_power_usage": 15,
+        "power_per_extension": 5
+    },
+    "steel_mill": {
+        "risk": 1,
+        "can_produce": true,
+        "attribute": "strength",
+        "perk": "smelting",
+        "produce": "steel",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 2,
+        "production_per_extension": 1,
+        "components": ["scrap", "scrap", "scrap", "watt"],
+        "base_power_usage": 8,
+        "power_per_extension": 2,
+        "conversion": { "input": ["scrap"], "output": ["steel"] }
+    },
+    "electronics_lab": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute": "intelligence",
+        "perk": "electronics",
+        "produce": "chip",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 1,
+        "production_per_extension": 1,
+        "components": ["steel", "watt", "silicon"],
+        "base_power_usage": 12,
+        "power_per_extension": 3,
+        "conversion": { "input": ["wire", "silicon"], "output": ["chip"] }
+    },
+    "workshop": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute": "agility",
+        "perk": "crafting",
+        "produce": "item",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 1,
+        "production_per_extension": 1,
+        "components": ["steel", "watt"],
+        "base_power_usage": 10,
+        "power_per_extension": 2,
+        "crafting": true
     }
 }
