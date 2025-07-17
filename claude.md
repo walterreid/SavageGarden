@@ -7,6 +7,7 @@
 - `rooms.json`: Room definitions, including capacity, production, power usage, and extension logic.
 - `items.json`: Item/component definitions, including crafting and resource types.
 - `test-game.js`: Test suite for validating game logic (optional for devs).
+- `startup.json`: Startup configuration for initial inventory, initial people, and wanderer arrival intervals.
 
 ## 🧠 Game Systems Overview
 
@@ -17,6 +18,7 @@
 - **Wanderer Arrivals**: Periodically, a new wanderer appears if there is space in the living room. Arrival is handled with a modal and a timer for player decision.
 - **Event Log**: All major actions and events are logged in the UI for player feedback and debugging.
 - **State Persistence**: Game state is saved to and loaded from `localStorage` (see `saveGame`/`loadGame` in `game-engine.js`).
+- **Startup Configuration**: The game loads initial inventory, starting inhabitants, and wanderer arrival timing from `startup.json`. This allows easy tuning of game balance and startup conditions without code changes.
 
 ## 📁 File/Folder Naming Conventions
 

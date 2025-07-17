@@ -787,6 +787,7 @@
                         <div class="rooms-list" id="rooms-list">
                             <!-- Rooms will be populated here -->
                         </div>
+                        <div id="population-bar"></div>
                     </div>
                     
                     <div class="section">
@@ -985,10 +986,11 @@
             
             renderRooms() {
                 const rooms = this.gameState.rooms;
+                const people = this.gameState.people;
                 const container = document.getElementById('rooms-list');
                 container.innerHTML = '';
-                
                 for (const [name, room] of Object.entries(rooms)) {
+                    if (!room.built) continue; // Only show built rooms
                     let specialFeatures = '';
                     if (room.freeSleeping) {
                         specialFeatures += '<br>🆓 Free Sleeping Area';
@@ -996,17 +998,30 @@
                     if (room.produce === 'happiness') {
                         specialFeatures += '<br>😊 Produces Happiness';
                     }
-                    
+                    // Assigned slots display
+                    let assignedCount = Object.values(people).filter(p => p.assignedRoom === name && p.alive).length;
+                    let assignedLimit = room.assigned_limit || 0;
+                    let assignedDisplay = '';
+                    for (let i = 0; i < assignedLimit; i++) {
+                        assignedDisplay += i < assignedCount ? '✅' : '❌';
+                    }
                     container.innerHTML += `
                         <div class="room-item">
                             <strong>🏠 ${name}</strong><br>
-                            Built: ${room.built ? '✅' : '❌'}<br>
-                            Assigned: ${room.assigned ? '✅' : '❌'}<br>
-                            Produces: ${room.produce || 'None'}<br>
+                            Capacity: ${assignedLimit} (${assignedDisplay})<br>
+                            Assigned: ${assignedCount}/${assignedLimit}<br>
+                            Produces: ${room.name === 'living' ? 'Inhabitants (When space available)' : (room.produce || 'None')}<br>
                             ${specialFeatures}
                         </div>
                     `;
                 }
+                const livingRoom = this.gameState.rooms['living'];
+                const maxPop = livingRoom ? (livingRoom.assigned_limit || 0) : 0;
+                const livingPeople = Object.values(this.gameState.people).filter(p => p.alive).length;
+                let popBar = '';
+                for (let i = 0; i < livingPeople; i++) popBar += '✅';
+                for (let i = livingPeople; i < maxPop; i++) popBar += '❌';
+                document.getElementById('population-bar').innerHTML = `<strong>Max Population:</strong> ${popBar}`;
             }
             
             renderActions() {
@@ -1687,13 +1702,14 @@
                 console.log('Assigning', personName, 'to', roomName);
                 const result = performAction('assign', personName, roomName);
                 console.log('Assignment result:', result);
-                if (result.success) {
+                if (result && result.success) {
                     this.log(result.message, 'success');
-                    // Force a fresh game state update
                     this.gameState = getGameState();
                     this.updateDisplay();
-                } else {
+                } else if (result && result.error) {
                     this.log(`Error assigning ${personName} to ${roomName}: ${result.error}`, 'error');
+                } else {
+                    this.log('Unknown error during assignment.', 'error');
                 }
                 document.getElementById('room-assignment-modal').style.display = 'none';
             }
@@ -1770,47 +1786,44 @@
                         <div class="room-option-content">
                             <h4>${room.name}</h4>
                             <p>Components: ${compList || 'None'}</p>
-                            <p>Capacity: ${assignedLimit} (${assignedDisplay})</p>
+                            <p>Capacity: ${assignedLimit}</p>
                             <p>Assigned: ${assignedCount}/${assignedLimit}</p>
                             <p>Production: ${production !== undefined ? production : 'N/A'} ${room.produce ? room.produce + '/cycle' : ''}</p>
                             <p>Consumption: ${consumption || (powerUsage !== undefined ? powerUsage + ' watt' : 'N/A')}</p>
                             ${livingNote}
-                            <button class="action-btn" id="build-btn-${room.name}" ${room.built ? 'disabled' : (!canBuild ? 'disabled title="Not enough materials"' : '')}>${room.built ? 'Built' : 'Build'}</button>
-                            ${room.built ? `<button class="action-btn" id="extend-btn-${room.name}" ${canExtend ? '' : 'disabled title="Not enough steel or watt"'}>Extend Room (Cost: ${extensionCostSteel} steel, ${extensionCostWatt} watt)</button>` : ''}
+                            ${!room.built ? `<button class="action-btn" id="build-btn-${room.name}" ${!canBuild ? 'disabled title="Not enough materials"' : ''}>Build</button>` :
+                            (canExtend ? `<button class="action-btn" id="extend-btn-${room.name}">Extend Room (Cost: ${extensionCostSteel} steel, ${extensionCostWatt} watt)</button>` :
+                            `<button class="action-btn" id="extend-btn-${room.name}" disabled title="Not enough steel or watt">Extend Room (Cost: ${extensionCostSteel} steel, ${extensionCostWatt} watt)</button>`) }
                         </div>
                     `;
                     buildRoomList.appendChild(roomDiv);
 
                     // Wire up the build button if buildable and not built
-                    setTimeout(() => {
-                        const buildBtn = document.getElementById(`build-btn-${room.name}`);
-                        if (buildBtn && !room.built && canBuild) {
-                            buildBtn.onclick = () => {
-                                const result = performAction('build', room.name);
-                                if (result.success) {
-                                    this.log(result.message, 'success');
-                                } else {
-                                    this.log(result.message || result.error, 'error');
-                                }
-                                this.gameState = getGameState();
-                                this.updateDisplay();
-                            };
-                        }
-                        // Wire up the extend button if extendable
-                        const extendBtn = document.getElementById(`extend-btn-${room.name}`);
-                        if (extendBtn && room.built && canExtend) {
-                            extendBtn.onclick = () => {
-                                const result = performAction('extend', room.name);
-                                if (result.success) {
-                                    this.log(result.message, 'success');
-                                } else {
-                                    this.log(result.message || result.error, 'error');
-                                }
-                                this.gameState = getGameState();
-                                this.updateDisplay();
-                            };
-                        }
-                    }, 0);
+                    if (!room.built && canBuild) {
+                        document.getElementById(`build-btn-${room.name}`).onclick = () => {
+                            const result = performAction('build', room.name);
+                            if (result.success) {
+                                this.log(result.message, 'success');
+                            } else {
+                                this.log(result.message || result.error, 'error');
+                            }
+                            this.gameState = getGameState();
+                            this.updateDisplay();
+                        };
+                    }
+                    // Wire up the extend button if extendable
+                    if (room.built && canExtend) {
+                        document.getElementById(`extend-btn-${room.name}`).onclick = () => {
+                            const result = performAction('extend', room.name);
+                            if (result.success) {
+                                this.log(result.message, 'success');
+                            } else {
+                                this.log(result.message || result.error, 'error');
+                            }
+                            this.gameState = getGameState();
+                            this.updateDisplay();
+                        };
+                    }
                 });
             }
 
@@ -1930,6 +1943,8 @@
                 }
                 this.gameState = getGameState();
                 this.updateDisplay();
+                // Ensure modal is hidden after accept
+                document.getElementById('wanderer-modal').style.display = 'none';
             }
             handleRejectWanderer() {
                 const result = performAction('rejectWanderer');
@@ -1940,6 +1955,8 @@
                 }
                 this.gameState = getGameState();
                 this.updateDisplay();
+                // Ensure modal is hidden after reject
+                document.getElementById('wanderer-modal').style.display = 'none';
             }
         }
         

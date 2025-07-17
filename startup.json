@@ -1,0 +1,22 @@
+{
+  "initialInventory": {
+    "scrap": 10,
+    "food": 10,
+    "water": 10,
+    "watt": 20,
+    "steel": 5,
+    "chip": 1,
+    "medkit": 2,
+    "stimpaks": 2,
+    "radaways": 1
+  },
+  "initialPeople": [
+    { "name": "Thompson", "gender": "M" },
+    { "name": "Elenor", "gender": "F" },
+    { "name": "Cole", "gender": "M" }
+  ],
+  "wandererArrival": {
+    "minIntervalMs": 180000,
+    "maxIntervalMs": 300000
+  }
+} 

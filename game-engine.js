@@ -3,32 +3,187 @@
  * Replicates the Python game logic with localStorage persistence
  */
 
+const ROOMS_DATA = {
+    "living": {
+        "risk": 0,
+        "can_produce": false,
+        "attribute" : "",
+        "perk" : "",
+        "produce" : "",
+        "assigned_limit": 10,
+        "extensions": 0,
+        "components": [],
+        "base_power_usage": 5,
+        "power_per_extension": 2
+    },
+    "generator": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute" : "strength",
+        "perk" : "electrician",
+        "produce" : "watt",
+        "assigned_limit": 3,
+        "extensions": 0,
+        "base_production": 8,
+        "production_per_extension": 4,
+        "components": ["steel", "steel", "steel", "steel"],
+        "base_power_usage": 0,
+        "power_per_extension": 0
+    },
+    "storage": {
+        "risk": 0,
+        "can_produce": false,
+        "attribute" : "",
+        "perk" : "",
+        "produce" : "",
+        "assigned_limit": 0,
+        "extensions": 0,
+        "components": ["steel", "steel"],
+        "base_power_usage": 1,
+        "power_per_extension": 1
+    },
+    "kitchen": {
+        "risk": 1,
+        "can_produce": true,
+        "attribute" : "agility",
+        "perk" : "cooking",
+        "produce" : "food",
+        "assigned_limit": 3,
+        "extensions": 0,
+        "base_production": 5,
+        "production_per_extension": 2,
+        "components": [],
+        "base_power_usage": 10,
+        "power_per_extension": 3
+    },
+    "trader": {
+        "risk": 0,
+        "can_produce": false,
+        "attribute" : "",
+        "perk" : "",
+        "produce" : "",
+        "assigned_limit": 1,
+        "extensions": 0,
+        "components": ["scrap", "scrap", "scrap", "steel", "steel"],
+        "base_power_usage": 2,
+        "power_per_extension": 1
+    },
+    "water": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute" : "perception",
+        "perk" : "",
+        "produce" : "water",
+        "assigned_limit": 3,
+        "extensions": 0,
+        "base_production": 6,
+        "production_per_extension": 2,
+        "components": ["scrap", "scrap", "steel"],
+        "base_power_usage": 10,
+        "power_per_extension": 3
+    },
+    "radio": {
+        "risk": 0,
+        "can_produce": false,
+        "attribute" : "",
+        "perk" : "inspiration",
+        "produce" : "",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "components": ["scrap", "scrap", "scrap", "steel", "steel"],
+        "base_power_usage": 15,
+        "power_per_extension": 5
+    },
+    "steel_mill": {
+        "risk": 1,
+        "can_produce": true,
+        "attribute": "strength",
+        "perk": "smelting",
+        "produce": "steel",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 2,
+        "production_per_extension": 1,
+        "components": ["scrap", "scrap", "scrap", "watt"],
+        "base_power_usage": 8,
+        "power_per_extension": 2,
+        "conversion": { "input": ["scrap"], "output": ["steel"] }
+    },
+    "electronics_lab": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute": "intelligence",
+        "perk": "electronics",
+        "produce": "chip",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 1,
+        "production_per_extension": 1,
+        "components": ["steel", "watt", "silicon"],
+        "base_power_usage": 12,
+        "power_per_extension": 3,
+        "conversion": { "input": ["wire", "silicon"], "output": ["chip"] }
+    },
+    "workshop": {
+        "risk": 2,
+        "can_produce": true,
+        "attribute": "agility",
+        "perk": "crafting",
+        "produce": "item",
+        "assigned_limit": 2,
+        "extensions": 0,
+        "base_production": 1,
+        "production_per_extension": 1,
+        "components": ["steel", "watt"],
+        "base_power_usage": 10,
+        "power_per_extension": 2,
+        "crafting": true
+    }
+};
+
+const STARTUP_CONFIG = {
+  "initialInventory": {
+    "scrap": 10,
+    "food": 10,
+    "water": 10,
+    "watt": 20,
+    "steel": 5,
+    "chip": 1,
+    "medkit": 2,
+    "stimpaks": 2,
+    "radaways": 1
+  },
+  "initialPeople": [
+    { "name": "Thompson", "gender": "M" },
+    { "name": "Elenor", "gender": "F" },
+    { "name": "Cole", "gender": "M" }
+  ],
+  "wandererArrival": {
+    "minIntervalMs": 120000,
+    "maxIntervalMs": 300000
+  }
+};
+
 class SimpleWebGameEngine {
     constructor() {
-        // Initialize global inventory (base inventory)
-        this.globalInventory = {
-            'turret': 1,
-            'steel': 5,
-            'chip': 1,
-            'food': 10,
-            'water': 10,
-            'watt': 20,
-            'medkit': 2,
-            'stimpaks': 2,
-            'radaways': 1
-        };
-        
-        // Initialize rooms
-        this.rooms = {
-            'living': {name: 'living', built: true, assigned: false, produce: 'happiness', production: 4, wattage: 0, rushed: false, freeSleeping: true},
-            'generator': {name: 'generator', built: true, assigned: false, produce: 'watt', production: 8, wattage: 0, rushed: false, freeSleeping: false},
-            'water': {name: 'water', built: true, assigned: false, produce: 'water', production: 6, wattage: 3, rushed: false, freeSleeping: false},
-            'kitchen': {name: 'kitchen', built: true, assigned: false, produce: 'food', production: 5, wattage: 2, rushed: false, freeSleeping: false}
-        };
+        // Initialize global inventory from STARTUP_CONFIG
+        this.globalInventory = JSON.parse(JSON.stringify(STARTUP_CONFIG.initialInventory));
+        // Initialize rooms from ROOMS_DATA
+        this.rooms = {};
+        for (const [roomName, roomDef] of Object.entries(ROOMS_DATA)) {
+            // Deep clone to avoid shared references
+            this.rooms[roomName] = JSON.parse(JSON.stringify(roomDef));
+            // Set built=true for starting rooms (living, generator, water, kitchen)
+            this.rooms[roomName].built = ["living","generator","water","kitchen"].includes(roomName);
+            this.rooms[roomName].assigned = false;
+        }
         console.log('Rooms initialized:', Object.keys(this.rooms));
         
-        // Initialize people
+        // Initialize people from STARTUP_CONFIG
         this.people = {};
+        for (const person of STARTUP_CONFIG.initialPeople) {
+            this.people[person.name] = new SimplePerson(person.name, person.gender);
+        }
         this.caps = 100;
         this.traderCaps = 500;
         this.happiness = 100;
@@ -81,8 +236,13 @@ class SimpleWebGameEngine {
         this.activeScavengeMissions = new Map(); // personName -> mission data
         
         // Wanderer arrival logic
-        this.wandererTimer = 0;
-        this.wandererInterval = 60 * 1000; // 1 minute for demo/testing
+        this.wandererCheckInterval = 5000; // 5 seconds
+        this.wandererMinDelay = STARTUP_CONFIG.wandererArrival.minIntervalMs; // 3 min
+        this.wandererMaxDelay = STARTUP_CONFIG.wandererArrival.maxIntervalMs; // 5 min
+        this.lastWandererTime = Date.now();
+        this.wandererWindowOpen = false;
+        this.wandererWindowStart = null;
+        this.wandererWindowEnd = null;
         this.pendingWanderer = null;
         
         // Start the game loop
@@ -125,11 +285,10 @@ class SimpleWebGameEngine {
         this.updateScavengeMissions();
         
         // Wanderer arrival logic
-        this.wandererTimer += this.tickInterval;
-        if (!this.pendingWanderer && this.wandererTimer >= this.wandererInterval) {
-            this.tryTriggerWandererArrival();
-            this.wandererTimer = 0;
-        }
+        this.handleWandererArrival(now);
+        
+        // Handle living quarters birth
+        this.handleLivingQuartersBirth(now);
         
         // Save game state periodically
         if (now % 30000 < 16) { // Every ~30 seconds
@@ -137,6 +296,45 @@ class SimpleWebGameEngine {
         }
         
         this.gameLoopId = requestAnimationFrame(() => this.gameLoop());
+    }
+
+    handleWandererArrival(now) {
+        // If a wanderer is pending, do nothing
+        if (this.pendingWanderer) return;
+        // If no living room or no available slot, do nothing
+        const livingRoom = this.rooms['living'];
+        if (!livingRoom || this.getLivingRoomCapacity() <= this.getPopulation()) return;
+        // Calculate time since last wanderer event
+        const sinceLast = now - this.lastWandererTime;
+        // If not yet in window, check if 3 min passed
+        if (!this.wandererWindowOpen) {
+            if (sinceLast >= this.wandererMinDelay) {
+                this.wandererWindowOpen = true;
+                this.wandererWindowStart = now;
+                this.wandererWindowEnd = now + (this.wandererMaxDelay - this.wandererMinDelay);
+            } else {
+                return; // Not yet eligible
+            }
+        }
+        // If in window (3-5 min), check every 5s for 5% chance
+        if (this.wandererWindowOpen) {
+            // Only check every 5s
+            if (!this.lastWandererCheck || now - this.lastWandererCheck >= this.wandererCheckInterval) {
+                this.lastWandererCheck = now;
+                // If window expired (5 min since last), reset for another 3 min
+                if (now >= this.wandererWindowEnd) {
+                    this.wandererWindowOpen = false;
+                    this.lastWandererTime = now;
+                    return;
+                }
+                // 5% chance
+                if (Math.random() < 0.05) {
+                    this.tryTriggerWandererArrival();
+                    this.wandererWindowOpen = false;
+                    this.lastWandererTime = now;
+                }
+            }
+        }
     }
 
     processTick() {
@@ -906,20 +1104,50 @@ class SimpleWebGameEngine {
     }
 
     actionAutoAssign() {
-        const availableRooms = Object.keys(this.rooms).filter(name => 
-            this.rooms[name].built && !this.rooms[name].assigned
-        );
-        const unassignedPeople = Object.keys(this.people).filter(name => 
+        // Prioritize rooms that keep people alive (not living quarters)
+        const priorityRooms = ["generator", "water", "kitchen"];
+        // Get all built, non-living rooms, sorted by priority first
+        const builtRooms = Object.keys(this.rooms)
+            .filter(name => this.rooms[name].built && name !== 'living')
+            .sort((a, b) => {
+                const aPriority = priorityRooms.indexOf(a);
+                const bPriority = priorityRooms.indexOf(b);
+                if (aPriority === -1 && bPriority === -1) return 0;
+                if (aPriority === -1) return 1;
+                if (bPriority === -1) return -1;
+                return aPriority - bPriority;
+            });
+        // Get all unassigned, alive people
+        const unassignedPeople = Object.keys(this.people).filter(name =>
             !this.people[name].assignedRoom && this.people[name].alive
         );
-        
-        for (let i = 0; i < unassignedPeople.length && i < availableRooms.length; i++) {
-            const personName = unassignedPeople[i];
-            const roomName = availableRooms[i];
-            this.people[personName].assignedRoom = roomName;
-            this.rooms[roomName].assigned = true;
+        // Assign people to productive rooms up to each room's assigned_limit
+        for (const roomName of builtRooms) {
+            const room = this.rooms[roomName];
+            const assigned = Object.values(this.people).filter(p => p.assignedRoom === roomName).length;
+            const limit = room.assigned_limit || 0;
+            let toAssign = Math.max(0, limit - assigned);
+            while (toAssign > 0 && unassignedPeople.length > 0) {
+                const personName = unassignedPeople.shift();
+                this.people[personName].assignedRoom = roomName;
+                toAssign--;
+            }
+            // Mark as assigned if at least one person is assigned
+            room.assigned = Object.values(this.people).some(p => p.assignedRoom === roomName);
         }
-        
+        // After all productive rooms are full, assign any remaining people to living quarters
+        const livingRoom = this.rooms['living'];
+        if (livingRoom && livingRoom.built) {
+            const assigned = Object.values(this.people).filter(p => p.assignedRoom === 'living').length;
+            const limit = livingRoom.assigned_limit || 0;
+            let toAssign = Math.max(0, limit - assigned);
+            while (toAssign > 0 && unassignedPeople.length > 0) {
+                const personName = unassignedPeople.shift();
+                this.people[personName].assignedRoom = 'living';
+                toAssign--;
+            }
+            livingRoom.assigned = Object.values(this.people).some(p => p.assignedRoom === 'living');
+        }
         return this;
     }
 
@@ -1294,6 +1522,11 @@ class SimpleWebGameEngine {
         if (this.pendingWanderer) {
             this.people[this.pendingWanderer.name] = this.pendingWanderer;
             this.pendingWanderer = null;
+            // Reset wanderer timer logic
+            this.lastWandererTime = Date.now();
+            this.wandererWindowOpen = false;
+            this.wandererWindowStart = null;
+            this.wandererWindowEnd = null;
             return { success: true, message: 'Wanderer accepted and joined the vault!' };
         }
         return { success: false, message: 'No wanderer to accept.' };
@@ -1301,9 +1534,46 @@ class SimpleWebGameEngine {
     rejectWanderer() {
         if (this.pendingWanderer) {
             this.pendingWanderer = null;
+            // Reset wanderer timer logic
+            this.lastWandererTime = Date.now();
+            this.wandererWindowOpen = false;
+            this.wandererWindowStart = null;
+            this.wandererWindowEnd = null;
             return { success: true, message: 'Wanderer rejected.' };
         }
         return { success: false, message: 'No wanderer to reject.' };
+    }
+
+    getLivingRoomCapacity() {
+        const living = this.rooms['living'];
+        if (!living) return 0;
+        // Default assigned_limit + extensions * extension_capacity (if present)
+        const base = living.assigned_limit || 0;
+        const ext = living.extensions || 0;
+        const extCap = living.extension_capacity || 0;
+        return base + ext * extCap;
+    }
+
+    getPopulation() {
+        return Object.values(this.people).filter(p => p.alive).length;
+    }
+
+    handleLivingQuartersBirth(now) {
+        const livingRoom = this.rooms['living'];
+        if (!livingRoom || !livingRoom.built) return;
+        const assigned = Object.values(this.people).filter(p => p.assignedRoom === 'living' && p.alive);
+        const capacity = livingRoom.assigned_limit || 0;
+        if (assigned.length < 2) return; // Need at least 2 assigned
+        if (Object.keys(this.people).length >= capacity) return; // No space
+        if (!this.lastBirthTime) this.lastBirthTime = now;
+        if (now - this.lastBirthTime >= 60000) { // 1 minute
+            // Generate a new person
+            const names = ["Alex", "Sam", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Skyler", "Jamie", "Avery", "Drew", "Quinn", "Rowan", "Parker", "Reese"];
+            const name = names[Math.floor(Math.random() * names.length)] + '_' + (Object.keys(this.people).length + 1);
+            const gender = Math.random() < 0.5 ? 'M' : 'F';
+            this.people[name] = new SimplePerson(name, gender);
+            this.lastBirthTime = now;
+        }
     }
 }
 
